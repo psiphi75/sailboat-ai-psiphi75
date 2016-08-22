@@ -1,0 +1,27 @@
+{
+  "name": "sailboat-ai-psiphi75",
+  "version": "0.1.0",
+  "description": "Simon's Sailboat AI in JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/psiphi75/sailboat-ai-psiphi75.git"
+  },
+  "keywords": [
+    "Sailboat",
+    "AI"
+  ],
+  "author": "Simon M. Werner",
+  "license": "APSL-2.0",
+  "bugs": {
+    "url": "https://github.com/psiphi75/sailboat-ai-psiphi75/issues"
+  },
+  "dependencies": {
+    "sailboat-utils": "git+https://github.com/psiphi75/sailboat-utils.git",
+    "web-remote-control": "^1.9.5"
+  },
+  "homepage": "https://github.com/psiphi75/sailboat-ai-psiphi75#readme"
+}
