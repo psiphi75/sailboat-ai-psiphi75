@@ -56,7 +56,7 @@ var self = {
      */
     ai: function (state, toy) {
 
-        if (typeof toy === 'function') toy.status(state);
+        if (toy) toy.status(state);
 
         var myPosition = new Position(state.boat.gps);
         var wpStatus = self.waypoints.getStatus(myPosition);
