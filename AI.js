@@ -30,9 +30,6 @@ var boatProperties = require('sailboat-utils/boatProperties');
 var TrackBoundary = require('./TrackBoundary');
 var TackKeeper = require('./TackKeeper');
 
-var SIDE_WIND_THRESH = 60;
-var AFT_WIND_THRESH = 120;
-
 // For the rudder, how far to turn it (for high and low angles), higher values are further
 var TURN_RATE_SCALER_LOW = 1.2;
 var TURN_RATE_SCALER_HIGH = 2;
@@ -65,6 +62,9 @@ var self = {
         var boundaryTracker = new TrackBoundary(contest.boundary);
         self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), 4, 'aft-wind', boundaryTracker, self.renderer);
         self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), 4, 'fore-wind', boundaryTracker, self.renderer);
+
+        var SailingMode = require('./SailingMode');
+        self.mode = new SailingMode();
     },
 
     /**
@@ -89,10 +89,10 @@ var self = {
 
             self.aftWindTacker.reset();
             self.foreWindTacker.reset();
+            self.mode.reset();
         }
 
-
-        var mode = getNextMode(self.waypoints, myPosition, state.environment.wind);
+        var mode = self.mode.get(self.waypoints, myPosition, state.environment.wind);
 
         // 2. Calculate the rudder
         var optimalRelativeHeading;
@@ -124,30 +124,6 @@ var self = {
     close: function() {
     }
 };
-
-/**
- * Calculate the next mode we are to be in.
- * @param  {WaypointManager} waypoints  The waypoints.
- * @param  {Position} myPosition
- * @param  {object} wind                Details of the actual wind.
- * @return {string}                     The mode to be in.
- */
-function getNextMode(waypoints, myPosition, wind) {
-    var headingToNextWP = myPosition.distanceHeadingTo(waypoints.getCurrent()).heading;
-    var windDirection = util.wrapDegrees(wind.heading - 180);
-    var diffAngle = Math.abs(util.wrapDegrees(windDirection - headingToNextWP));
-    if (isNaN(diffAngle)) {
-        console.error('getNextMode(): we have a NaN');
-    }
-    switch (true) {
-        case diffAngle >= AFT_WIND_THRESH:
-            return 'aft-wind';
-        case diffAngle >= SIDE_WIND_THRESH:
-            return 'side-wind';
-        default:
-            return 'fore-wind';
-    }
-}
 
 
 /**
