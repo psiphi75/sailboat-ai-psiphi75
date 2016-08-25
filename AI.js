@@ -33,6 +33,19 @@ var TackKeeper = require('./TackKeeper');
 var SIDE_WIND_THRESH = 60;
 var AFT_WIND_THRESH = 120;
 
+var gpsState = util.useLastIfNecessary({
+    latitude: 0,
+    longitude: 0
+});
+var windState = util.useLastIfNecessary({
+    heading: 0,
+    speed: 1
+});
+var trueWindState = util.useLastIfNecessary({
+    heading: 0,
+    speed: 1
+});
+
 var self = {
 
     /**
@@ -46,7 +59,7 @@ var self = {
 
         var boundaryTracker = new TrackBoundary(contest.boundary);
         self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), 4, 'aft-wind', boundaryTracker, self.renderer);
-        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), 2, 'fore-wind', boundaryTracker, self.renderer);
+        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), 4, 'fore-wind', boundaryTracker, self.renderer);
     },
 
     /**
@@ -57,6 +70,10 @@ var self = {
     ai: function (state, toy) {
 
         if (toy) toy.status(state);
+
+        state.boat.gps = gpsState.check(state.boat.gps);
+        state.environment.wind = gpsState.check(state.environment.wind);
+        state.boat.trueWind = gpsState.check(state.boat.trueWind);
 
         var myPosition = new Position(state.boat.gps);
         var wpStatus = self.waypoints.getStatus(myPosition);
