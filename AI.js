@@ -33,6 +33,11 @@ var TackKeeper = require('./TackKeeper');
 var SIDE_WIND_THRESH = 60;
 var AFT_WIND_THRESH = 120;
 
+// For the rudder, how far to turn it (for high and low angles), higher values are further
+var TURN_RATE_SCALER_LOW = 1.2;
+var TURN_RATE_SCALER_HIGH = 2;
+var TURN_RATE_SCALER_THRESH = 45;
+
 var gpsState = util.useLastIfNecessary({
     latitude: 0,
     longitude: 0
@@ -161,8 +166,13 @@ function calcRudder(optimalRelativeHeading) {
 
     optimalRelativeHeading = util.wrapDegrees(optimalRelativeHeading);
 
-    var turnRateScalar = 2;
-    var turnRateValue = turnRateScalar * optimalRelativeHeading;
+    var scalar;
+    if (Math.abs(optimalRelativeHeading) > TURN_RATE_SCALER_THRESH) {
+        scalar = TURN_RATE_SCALER_HIGH;
+    } else {
+        scalar = TURN_RATE_SCALER_LOW;
+    }
+    var turnRateValue = scalar * optimalRelativeHeading;
     if (turnRateValue > 90) turnRateValue = 90;
     if (turnRateValue < -90) turnRateValue = -90;
 
