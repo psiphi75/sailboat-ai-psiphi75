@@ -72,8 +72,8 @@ var self = {
         if (toy) toy.status(state);
 
         state.boat.gps = gpsState.check(state.boat.gps);
-        state.environment.wind = gpsState.check(state.environment.wind);
-        state.boat.trueWind = gpsState.check(state.boat.trueWind);
+        state.environment.wind = windState.check(state.environment.wind);
+        state.boat.trueWind = trueWindState.check(state.boat.trueWind);
 
         var myPosition = new Position(state.boat.gps);
         var wpStatus = self.waypoints.getStatus(myPosition);
