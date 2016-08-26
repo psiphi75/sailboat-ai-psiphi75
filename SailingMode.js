@@ -25,12 +25,7 @@
 
 var util = require('sailboat-utils/util');
 
-// These two determine the best angle for the boat based on the given wind.
-var SIDE_WIND_THRESH = 60;
-var AFT_WIND_THRESH = 120;
-var CHANGE_ANGLE_THRESH = 15; // When changing between fore/side/aft-winds, we need an extra thresh
-
-function SailingMode() {
+function SailingMode(sailingModeThresholds) {
 
     var currentMode = null;
 
@@ -73,22 +68,22 @@ function SailingMode() {
     function calcMode(angle) {
         var isCertain = true;
         var mode;
-        if (angle <= SIDE_WIND_THRESH - CHANGE_ANGLE_THRESH) {
+        if (angle <= sailingModeThresholds.sideWindThresh - sailingModeThresholds.changeAngleThresh) {
             isCertain = true;
             mode = 'fore-wind';
-        } else if (angle <= SIDE_WIND_THRESH) {
+        } else if (angle <= sailingModeThresholds.sideWindThresh) {
             isCertain = false;
             mode = 'fore-wind';
-        } else if (angle <= SIDE_WIND_THRESH + CHANGE_ANGLE_THRESH) {
+        } else if (angle <= sailingModeThresholds.sideWindThresh + sailingModeThresholds.changeAngleThresh) {
             isCertain = false;
             mode = 'side-wind';
-        } else if (angle <= AFT_WIND_THRESH - CHANGE_ANGLE_THRESH) {
+        } else if (angle <= sailingModeThresholds.aftWindThresh - sailingModeThresholds.changeAngleThresh) {
             isCertain = true;
             mode = 'side-wind';
-        } else if (angle <= AFT_WIND_THRESH) {
+        } else if (angle <= sailingModeThresholds.aftWindThresh) {
             isCertain = false;
             mode = 'side-wind';
-        } else if (angle <= AFT_WIND_THRESH + CHANGE_ANGLE_THRESH) {
+        } else if (angle <= sailingModeThresholds.aftWindThresh + sailingModeThresholds.changeAngleThresh) {
             isCertain = false;
             mode = 'aft-wind';
         } else {

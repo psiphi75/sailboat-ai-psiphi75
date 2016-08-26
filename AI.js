@@ -30,10 +30,29 @@ var boatProperties = require('sailboat-utils/boatProperties');
 var TrackBoundary = require('./TrackBoundary');
 var TackKeeper = require('./TackKeeper');
 
-// For the rudder, how far to turn it (for high and low angles), higher values are further
-var TURN_RATE_SCALER_LOW = 1.2;
-var TURN_RATE_SCALER_HIGH = 2;
-var TURN_RATE_SCALER_THRESH = 45;
+
+var tuningParams = {
+
+    // For the rudder, how far to turn it (for high and low angles), higher values are further
+    rudderTurnRate: {
+        low: 1.2,       // factor (of degrees)
+        high: 2,        // factor (of degrees)
+        thresh: 45      // degrees
+    },
+
+    // These two determine the best angle for the boat based on the given wind.
+    sailingMode: {
+        sideWindThresh: 60,     // degrees
+        aftWindThresh: 120,     // degrees
+        changeAngleThresh: 15   // degrees, When changing between fore/side/aft-winds, we need an extra thresh
+    },
+
+    // How far away from the line between the waypoints should we tack?
+    tackDistanceThresh: {
+        aft: 4,
+        fore: 4
+    }
+};
 
 var gpsState = util.useLastIfNecessary({
     latitude: 0,
@@ -60,11 +79,11 @@ var self = {
         self.renderer = new (require('./Renderer'))();
 
         var boundaryTracker = new TrackBoundary(contest.boundary);
-        self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), 4, 'aft-wind', boundaryTracker, self.renderer);
-        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), 4, 'fore-wind', boundaryTracker, self.renderer);
+        self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), tuningParams.tackDistanceThresh.aft, 'aft-wind', boundaryTracker, self.renderer);
+        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), tuningParams.tackDistanceThresh.fore, 'fore-wind', boundaryTracker, self.renderer);
 
         var SailingMode = require('./SailingMode');
-        self.mode = new SailingMode();
+        self.mode = new SailingMode(tuningParams.sailingMode);
     },
 
     /**
@@ -143,10 +162,10 @@ function calcRudder(optimalRelativeHeading) {
     optimalRelativeHeading = util.wrapDegrees(optimalRelativeHeading);
 
     var scalar;
-    if (Math.abs(optimalRelativeHeading) > TURN_RATE_SCALER_THRESH) {
-        scalar = TURN_RATE_SCALER_HIGH;
+    if (Math.abs(optimalRelativeHeading) > tuningParams.rudderTurnRate.thresh) {
+        scalar = tuningParams.rudderTurnRate.high;
     } else {
-        scalar = TURN_RATE_SCALER_LOW;
+        scalar = tuningParams.rudderTurnRate.low;
     }
     var turnRateValue = scalar * optimalRelativeHeading;
     if (turnRateValue > 90) turnRateValue = 90;
