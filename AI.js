@@ -80,7 +80,7 @@ var self = {
         self.waypoints = new WaypointManager(contest.waypoints);
         self.renderer = new (require('./Renderer'))();
 
-        var boundaryTracker = new TrackBoundary(contest.boundary);
+        var boundaryTracker = new TrackBoundary(contest);
         self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), tuningParams.tack.maxDistThresh.aft, 'aft-wind', boundaryTracker, self.renderer);
         self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), tuningParams.tack.maxDistThresh.fore, 'fore-wind', boundaryTracker, self.renderer);
 

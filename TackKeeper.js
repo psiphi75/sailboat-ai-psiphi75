@@ -54,25 +54,38 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
                 layLine = new LayLine(wpPrev, wpCurrent, wpNext, mode, optimalWindAngle);
             }
             layLine.update(myPosition, wind);
-
             if (!q) {
-                q = getOptimalSideOfLine(waypoints);
+                q = getOptimalSideOfLine();
                 renderer.drawLayline(wpCurrent, wind, optimalWindAngle);
                 headingAlongLayLine = layLine.hasReachedIt();
+                // log('!q')
             } else if (boundaryTracker.isNewlyOutOfBounds(myPosition)) {
                 q = getOptimalSideOfLine();
                 renderer.drawTrail(myPosition, 'BLUE', true);
+                // log('isNewlyOutOfBounds')
             } else if (layLine.hasJustCrossedLayLine()) {
                 headingAlongLayLine = true;
                 this.tack();
                 renderer.drawTrail(myPosition, 'GREEN', true);
+                // log('hasJustCrossedLayLine')
             } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev)) {
                 this.tack();
                 renderer.drawTrail(myPosition, 'RED', true);
+                // log('hasReachedMaxDistFromWaypointLine')
             }
 
             var optimalRelativeHeading = calcOptimalRelativeHeading(boat);
+            // if (mode==='aft-wind') console.log('optimalRelativeHeading: ', optimalRelativeHeading)
             return optimalRelativeHeading;
+
+            // function log (name) {
+            //     console.log('\n******************')
+            //     console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
+            //                 '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
+            //                 '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
+            //     console.log('******************\n')
+            //     logit=true
+            // }
         },
 
         reset: function() {

@@ -29,14 +29,19 @@ var insidePolygon = require('point-in-polygon');
  * Checks if a point is inside a boundary or not.  Keeps a track of the last point too.
  * @param {[object]} polyline Array of objects
  */
-function TrackBoundary(latLongBoundaryLine) {
-    var llPolygon = latLongBoundaryLine.map(function(ll) {
-        return [ll.latitude, ll.longitude];
-    });
-    var lastPositionWasOutOfBounds;
+function TrackBoundary(contest) {
+
+    if (contestHasBoundary()) {
+        var latLongBoundaryLine = contest.boundary;
+        var llPolygon = latLongBoundaryLine.map(function(ll) {
+            return [ll.latitude, ll.longitude];
+        });
+        var lastPositionWasOutOfBounds;
+    }
 
     return {
         isNewlyOutOfBounds: function(latLong) {
+            if (!contestHasBoundary()) return false;
             var isOutOfBounds = this.isOutOfBounds(latLong);
             if (lastPositionWasOutOfBounds === undefined) {
                 lastPositionWasOutOfBounds = isOutOfBounds;
@@ -47,11 +52,25 @@ function TrackBoundary(latLongBoundaryLine) {
         },
 
         isOutOfBounds: function(ll) {
+            if (!contestHasBoundary()) return false;
             var llArr = [ll.latitude, ll.longitude];
             var outOfBounds = !insidePolygon(llArr, llPolygon);
             return outOfBounds;
         }
     };
+
+    function contestHasBoundary() {
+        switch (contest.type) {
+            case 'fleet-race':
+            case 'area-scanning':
+                return true;
+            case 'station-keeping':
+            case 'obstacle-avoidance':
+            case 'none':
+            default:
+                return false;
+        }
+    }
 }
 
 module.exports = TrackBoundary;
