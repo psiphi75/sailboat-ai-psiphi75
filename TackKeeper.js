@@ -24,12 +24,14 @@
 'use strict';
 
 var util = require('sailboat-utils/util');
-var Position = require('sailboat-utils/Position');
+var LayLine = require('./LayLine');
 
 function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundaryTracker, renderer) {
 
     var q;  // Determines the tack mode -1 is left, +1 is right
-    var headingForLayLine = false;
+    // var sign = (mode === 'fore-wind' ? 1 : -1);
+    var headingAlongLayLine = false;
+    var layLine;
 
     return {
 
@@ -45,15 +47,23 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
             var wpCurrent = waypoints.getCurrent();
             var wpPrev = waypoints.getPrevious();
             var sideOfLine = myPosition.calcSideOfLine(wpCurrent, wpPrev);
-            if (!q) {
-                q = -sideOfLine;
-                renderer.drawLayline(wpCurrent, wind, optimalWindAngle);
-            }
 
-            if (boundaryTracker.isNewlyOutOfBounds(myPosition)) {
-                this.tack();
+            // Create & Update the lay line
+            if (!layLine) {
+                var wpNext = waypoints.getNext();
+                layLine = new LayLine(wpPrev, wpCurrent, wpNext, mode, optimalWindAngle);
+            }
+            layLine.update(myPosition, wind);
+
+            if (!q) {
+                q = getOptimalSideOfLine(waypoints);
+                renderer.drawLayline(wpCurrent, wind, optimalWindAngle);
+                headingAlongLayLine = layLine.hasReachedIt();
+            } else if (boundaryTracker.isNewlyOutOfBounds(myPosition)) {
+                q = getOptimalSideOfLine();
                 renderer.drawTrail(myPosition, 'BLUE', true);
-            } else if (hasReachedLayline(myPosition, wpCurrent, wind)) {
+            } else if (layLine.hasJustCrossedLayLine()) {
+                headingAlongLayLine = true;
                 this.tack();
                 renderer.drawTrail(myPosition, 'GREEN', true);
             } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev)) {
@@ -67,7 +77,8 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
 
         reset: function() {
             q = undefined;
-            headingForLayLine = false;
+            headingAlongLayLine = false;
+            layLine = undefined;
         },
 
         tack: function() {
@@ -78,48 +89,25 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
 
     function hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev) {
 
-        if (headingForLayLine) return false;
+        if (headingAlongLayLine) return false;
 
         var distantToWaypointLine = myPosition.distanceToLine(wpCurrent, wpPrev);
-        var onExpectedSideOfLine = q === sideOfLine;
+        var onTargetSideOfLine = (q === -sideOfLine);
         var hasReachedMax = distantToWaypointLine >= maxDistanceFromWaypointLine;
 
-        return onExpectedSideOfLine && hasReachedMax;
+        return onTargetSideOfLine && hasReachedMax;
     }
-
-    function hasReachedLayline(myPosition, wpCurrent, wind) {
-
-        if (headingForLayLine) return false;
-        if (hasReachedLL(1) || hasReachedLL(-1)) {
-            headingForLayLine = true;
-            return true;
-        } else {
-            return false;
-        }
-
-        function hasReachedLL(sign) {
-            var LLHeading = wind.heading + sign * optimalWindAngle;
-            var mySideOfLL = myPosition.calcSideOfLineByAngle(wpCurrent, LLHeading);
-            if (mySideOfLL === 0) return true;  // 0 means on the lay line
-            var heading;
-            if (mode === 'aft-wind') {
-                heading = wind.heading;
-            } else {
-                heading = util.wrapDegrees(wind.heading + 180);
-            }
-            var pointOnTheOtherSide = new Position(wpCurrent).gotoHeading(heading, 10);
-            var theOtherSideOfLL = pointOnTheOtherSide.calcSideOfLineByAngle(wpCurrent, LLHeading);
-            var reachedLL = (mySideOfLL === theOtherSideOfLL);
-            return reachedLL;
-        }
-    }
-
 
     function calcOptimalRelativeHeading(boat) {
-        var optimalRelativeHeading = -util.wrapDegrees(q * optimalWindAngle - boat.trueWind.heading);
+        var optimalRelativeHeading = util.wrapDegrees(boat.trueWind.heading - q * optimalWindAngle);
         return optimalRelativeHeading;
     }
 
+    function getOptimalSideOfLine() {
+        return 1;
+    }
+
 }
+
 
 module.exports = TackKeeper;

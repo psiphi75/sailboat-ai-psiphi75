@@ -22,6 +22,7 @@
   "dependencies": {
     "point-in-polygon": "^1.0.1",
     "sailboat-utils": "git+https://github.com/psiphi75/sailboat-utils.git",
+    "tape": "^4.6.0",
     "web-remote-control": "^1.9.5"
   },
   "homepage": "https://github.com/psiphi75/sailboat-ai-psiphi75#readme"
