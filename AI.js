@@ -29,6 +29,7 @@ var WaypointManager = require('sailboat-utils/WaypointManager');
 var boatProperties = require('sailboat-utils/boatProperties');
 var TrackBoundary = require('./TrackBoundary');
 var TackKeeper = require('./TackKeeper');
+var TimeKeeper = require('./TimeKeeper');
 
 
 var tuningParams = {
@@ -77,6 +78,7 @@ var self = {
      */
     init: function(contest) {
         self.contest = contest;
+
         self.waypoints = new WaypointManager(contest.waypoints);
         self.renderer = new (require('./Renderer'))();
 
@@ -86,6 +88,10 @@ var self = {
 
         var SailingMode = require('./SailingMode');
         self.mode = new SailingMode(tuningParams.sailingMode);
+
+        if (contest.type === 'area-scanning') {
+            self.timeCheck = new TimeKeeper(contest.timeLimitSec, contest.waypoints);
+        }
     },
 
     /**
@@ -105,8 +111,16 @@ var self = {
         var wpStatus = self.waypoints.getStatus(myPosition);
 
         // 1. Check if we have reached the waypoint, if yes, then load the next waypoint and do some calcs.
+        self.timeCheck.incTime(state.dt);
         if (wpStatus.achieved) {
-            wpStatus = self.waypoints.next(myPosition);
+
+            var wp = self.waypoints.getPrevious();
+            if (self.timeCheck && wp.number > 3 && self.timeCheck.headToFinish(wp)) {
+                wpStatus = self.waypoints.gotoNth(-2, myPosition);  // Load the 2nd to last waypoint
+            } else {
+                wpStatus = self.waypoints.next(myPosition);
+            }
+
 
             self.aftWindTacker.reset();
             self.foreWindTacker.reset();

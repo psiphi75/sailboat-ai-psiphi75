@@ -50,7 +50,7 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
 
             // Create & Update the lay line
             if (!layLine) {
-                var wpNext = waypoints.getNext();
+                var wpNext = waypoints.peekNext();
                 layLine = new LayLine(wpPrev, wpCurrent, wpNext, mode, optimalWindAngle);
             }
             layLine.update(myPosition, wind);
