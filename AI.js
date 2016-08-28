@@ -120,6 +120,7 @@ var self = {
             } else {
                 wpStatus = self.waypoints.next(myPosition);
             }
+            self.contest.saveState(self.waypoints.getState());
 
 
             self.aftWindTacker.reset();
