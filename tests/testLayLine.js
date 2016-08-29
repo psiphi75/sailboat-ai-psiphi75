@@ -23,7 +23,7 @@
 
 'use strict';
 
-var LayLine = require('./LayLine');
+var LayLine = require('../LayLine');
 var Position = require('sailboat-utils/Position');
 var test = require('tape');
 
