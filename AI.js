@@ -51,9 +51,10 @@ var tuningParams = {
     // How far away from the line between the waypoints should we tack?
     tack: {
         maxDistThresh: {
-            aft: 4,
-            fore: 4
-        }
+            'aft-wind': 4,
+            'fore-wind': 4,
+        },
+        laylineReachFactor: 2.5    // Don't tack if the distance of the layline is less than maxDistThresh.(aft/fore) * laylineReachFactor
     }
 };
 
@@ -83,8 +84,8 @@ var self = {
         self.renderer = new (require('./Renderer'))();
 
         var boundaryTracker = new TrackBoundary(contest);
-        self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), tuningParams.tack.maxDistThresh.aft, 'aft-wind', boundaryTracker, self.renderer);
-        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), tuningParams.tack.maxDistThresh.fore, 'fore-wind', boundaryTracker, self.renderer);
+        self.aftWindTacker = TackKeeper(boatProperties.findOptimalApparentAftWindAngle(), tuningParams.tack, 'aft-wind', boundaryTracker, self.renderer);
+        self.foreWindTacker = TackKeeper(boatProperties.findOptimalApparentForeWindAngle(), tuningParams.tack, 'fore-wind', boundaryTracker, self.renderer);
 
         var SailingMode = require('./SailingMode');
         self.mode = new SailingMode(tuningParams.sailingMode);

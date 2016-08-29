@@ -35,23 +35,23 @@ function LayLine(wpPrev, wpCurrent, wpNext, mode, optimalWindAngle) {
         return null;
     }
 
-    var myPosition;
+    var boatPosition;
     var wind;
     var lastHasReachedIt = null;
 
     return {
-        update: function(_myPosition, _wind) {
-            myPosition = _myPosition;
+        update: function(_boatPosition, _wind) {
+            boatPosition = _boatPosition;
             wind = _wind;
         },
         hasReachedIt: function() {
-            if (!myPosition || !wind) return null;
-            var hasReachedIt = hasReachedLL(1, myPosition, wind, optimalWindAngle) || hasReachedLL(-1, myPosition, wind, optimalWindAngle);
+            if (!boatPosition || !wind) return null;
+            var hasReachedIt = hasReachedLL(1, boatPosition, wind, optimalWindAngle) || hasReachedLL(-1, boatPosition, wind, optimalWindAngle);
             return hasReachedIt;
         },
         withinLayLines: function() {
-            if (!myPosition || !wind) return null;
-            return !this.hasReachedIt(myPosition, wind, optimalWindAngle);
+            if (!boatPosition || !wind) return null;
+            return !this.hasReachedIt(boatPosition, wind, optimalWindAngle);
         },
         /**
          * Returns the preferred layline (-1 the one to the left, +1 the one to the right, 0 both about the same)
@@ -72,23 +72,43 @@ function LayLine(wpPrev, wpCurrent, wpNext, mode, optimalWindAngle) {
             var hasJustCrossedLayLine = (lastHasReachedIt === false && hasReachedIt === true);
             lastHasReachedIt = hasReachedIt;
             return hasJustCrossedLayLine;
+        },
+        /**
+         * Get the distance to the layline crossing point.
+         * @param  {[type]} heading [description]
+         * @return {[type]}         [description]
+         */
+        isNear: function(boatHeading, distLimit) {
+
+            // console.log('isNear -1', isNearLL(-1))
+            // console.log('isNear +1', isNearLL(+1))
+            if (isNearLL(-1)) return true;
+            if (isNearLL(+1)) return true;
+            return false;
+
+            function isNearLL(llSign) {
+                // console.log('boatHeading, wpCurrent, LLHeading, distLimit')
+                // console.log(boatHeading, wpCurrent, LLHeading, distLimit)
+                var LLHeading = wind.heading + llSign * optimalWindAngle;
+                return boatPosition.crossesLine(boatHeading, wpCurrent, LLHeading, distLimit);
+            }
         }
 
     };
 
     function hasReachedLL(llSign) {
         var LLHeading = wind.heading + llSign * optimalWindAngle;
-        var mySideOfLL = myPosition.calcSideOfLineByAngle(wpCurrent, LLHeading);
-        if (mySideOfLL === 0) return true;  // 0 means on the lay line
-        var heading;
+        var boatSideOfLL = boatPosition.calcSideOfLineByAngle(wpCurrent, LLHeading);
+        if (boatSideOfLL === 0) return true;  // 0 means on the lay line
+        var headingOnOthersideOfWaypoint;
         if (mode === 'aft-wind') {
-            heading = wind.heading;
+            headingOnOthersideOfWaypoint = wind.heading;
         } else {
-            heading = util.wrapDegrees(wind.heading + 180);
+            headingOnOthersideOfWaypoint = util.wrapDegrees(wind.heading + 180);
         }
-        var pointOnTheOtherSide = new Position(wpCurrent).gotoHeading(heading, 10);
+        var pointOnTheOtherSide = new Position(wpCurrent).gotoHeading(headingOnOthersideOfWaypoint, 10);
         var theOtherSideOfLL = pointOnTheOtherSide.calcSideOfLineByAngle(wpCurrent, LLHeading);
-        var reachedLL = (mySideOfLL === theOtherSideOfLL);
+        var reachedLL = (boatSideOfLL === theOtherSideOfLL);
         return reachedLL;
     }
 }

@@ -26,12 +26,14 @@
 var util = require('sailboat-utils/util');
 var LayLine = require('./LayLine');
 
-function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundaryTracker, renderer) {
+function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, renderer) {
 
     var q;  // Determines the tack mode -1 is left, +1 is right
     // var sign = (mode === 'fore-wind' ? 1 : -1);
     var headingAlongLayLine = false;
     var layLine;
+    var maxDistanceFromWaypointLine = tackParams.maxDistThresh[mode];
+    var laylineReach = maxDistanceFromWaypointLine * tackParams.laylineReachFactor;
 
     return {
 
@@ -58,34 +60,33 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
                 q = getOptimalSideOfLine();
                 renderer.drawLayline(wpCurrent, wind, optimalWindAngle);
                 headingAlongLayLine = layLine.hasReachedIt();
-                // log('!q')
+                log('!q')
             } else if (boundaryTracker.isNewlyOutOfBounds(myPosition)) {
                 q = getOptimalSideOfLine();
                 renderer.drawTrail(myPosition, 'BLUE', true);
-                // log('isNewlyOutOfBounds')
+                log('isNewlyOutOfBounds')
             } else if (layLine.hasJustCrossedLayLine()) {
                 headingAlongLayLine = true;
                 this.tack();
                 renderer.drawTrail(myPosition, 'GREEN', true);
-                // log('hasJustCrossedLayLine')
-            } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev)) {
+                log('hasJustCrossedLayLine')
+            } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev, boat.attitude.heading)) { // FIXME: change to boat.velocity.heading
                 this.tack();
                 renderer.drawTrail(myPosition, 'RED', true);
-                // log('hasReachedMaxDistFromWaypointLine')
+                log('hasReachedMaxDistFromWaypointLine')
             }
 
             var optimalRelativeHeading = calcOptimalRelativeHeading(boat);
             // if (mode==='aft-wind') console.log('optimalRelativeHeading: ', optimalRelativeHeading)
             return optimalRelativeHeading;
 
-            // function log (name) {
-            //     console.log('\n******************')
-            //     console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
-            //                 '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
-            //                 '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
-            //     console.log('******************\n')
-            //     logit=true
-            // }
+            function log (name) {
+                // console.log('\n******************')
+                // console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
+                //             '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
+                //             '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
+                // console.log('******************\n')
+            }
         },
 
         reset: function() {
@@ -100,9 +101,12 @@ function TackKeeper(optimalWindAngle, maxDistanceFromWaypointLine, mode, boundar
 
     };
 
-    function hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev) {
+    function hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev, boatHeading) {
 
         if (headingAlongLayLine) return false;
+
+        // Don't tack if we are close the lay line, this will require an extra tack later
+        if (layLine.isNear(boatHeading, laylineReach)) return false;
 
         var distantToWaypointLine = myPosition.distanceToLine(wpCurrent, wpPrev);
         var onTargetSideOfLine = (q === -sideOfLine);
