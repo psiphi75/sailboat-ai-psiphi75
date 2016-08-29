@@ -111,7 +111,7 @@ var self = {
         var wpStatus = self.waypoints.getStatus(myPosition);
 
         // 1. Check if we have reached the waypoint, if yes, then load the next waypoint and do some calcs.
-        self.timeCheck.incTime(state.dt);
+        if (self.timeCheck) self.timeCheck.incTime(state.dt);
         if (wpStatus.achieved) {
 
             var wp = self.waypoints.getPrevious();
