@@ -29,7 +29,7 @@ var LayLine = require('./LayLine');
 function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, renderer) {
 
     var q;  // Determines the tack mode -1 is left, +1 is right
-    // var sign = (mode === 'fore-wind' ? 1 : -1);
+    var sign = (mode === 'fore-wind') ? +1 : -1;
     var headingAlongLayLine = false;
     var layLine;
     var maxDistanceFromWaypointLine = tackParams.maxDistThresh[mode];
@@ -59,12 +59,14 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
             if (!q) {
                 q = getOptimalSideOfLine();
                 renderer.drawLayline(wpCurrent, wind, optimalWindAngle);
+                renderer.drawTrail(myPosition, 'WHITE', true);
                 headingAlongLayLine = layLine.hasReachedIt();
+
                 log('!q')
-            } else if (boundaryTracker.isNewlyOutOfBounds(myPosition)) {
-                q = getOptimalSideOfLine();
+            } else if (boundaryTracker.isOutOfBounds(myPosition)) {
+                q = insideCourse();
                 renderer.drawTrail(myPosition, 'BLUE', true);
-                log('isNewlyOutOfBounds')
+                log('isOutOfBounds')
             } else if (layLine.hasJustCrossedLayLine()) {
                 headingAlongLayLine = true;
                 this.tack();
@@ -77,15 +79,15 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
             }
 
             var optimalRelativeHeading = calcOptimalRelativeHeading(boat);
-            // if (mode==='aft-wind') console.log('optimalRelativeHeading: ', optimalRelativeHeading)
+            console.log('optimalRelativeHeading: ', optimalRelativeHeading, boat.attitude.heading, boat.trueWind.heading)
             return optimalRelativeHeading;
 
             function log (name) {
-                // console.log('\n******************')
-                // console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
-                //             '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
-                //             '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
-                // console.log('******************\n')
+                console.log('\n******************')
+                console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
+                            '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
+                            '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
+                console.log('******************\n')
             }
         },
 
@@ -116,12 +118,20 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
     }
 
     function calcOptimalRelativeHeading(boat) {
-        var optimalRelativeHeading = util.wrapDegrees(boat.trueWind.heading - q * optimalWindAngle);
+        var optimalRelativeHeading = util.wrapDegrees(boat.trueWind.heading + sign * q * optimalWindAngle);
         return optimalRelativeHeading;
     }
 
     function getOptimalSideOfLine() {
+        return outsideCourse();
+    }
+
+    function outsideCourse() {
         return 1;
+    }
+
+    function insideCourse() {
+        return mode === 'fore-wind' ? 1 : -1;
     }
 
 }
