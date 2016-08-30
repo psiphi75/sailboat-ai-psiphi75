@@ -62,32 +62,32 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
                 renderer.drawTrail(myPosition, 'WHITE', true);
                 headingAlongLayLine = layLine.hasReachedIt();
 
-                log('!q')
+                // log('!q')
             } else if (boundaryTracker.isOutOfBounds(myPosition)) {
                 q = insideCourse();
                 renderer.drawTrail(myPosition, 'BLUE', true);
-                log('isOutOfBounds')
+                // log('isOutOfBounds')
             } else if (layLine.hasJustCrossedLayLine()) {
                 headingAlongLayLine = true;
                 this.tack();
                 renderer.drawTrail(myPosition, 'GREEN', true);
-                log('hasJustCrossedLayLine')
+                // log('hasJustCrossedLayLine')
             } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev, boat.attitude.heading)) { // FIXME: change to boat.velocity.heading
                 this.tack();
                 renderer.drawTrail(myPosition, 'RED', true);
-                log('hasReachedMaxDistFromWaypointLine')
+                // log('hasReachedMaxDistFromWaypointLine')
             }
 
             var optimalRelativeHeading = calcOptimalRelativeHeading(boat);
-            console.log('optimalRelativeHeading: ', optimalRelativeHeading, boat.attitude.heading, boat.trueWind.heading)
+            // console.log('optimalRelativeHeading: ', optimalRelativeHeading, boat.attitude.heading, boat.trueWind.heading)
             return optimalRelativeHeading;
 
             function log (name) {
-                console.log('\n******************')
-                console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
-                            '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
-                            '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
-                console.log('******************\n')
+                // console.log('\n******************')
+                // console.log('name -> ', name, '\nmode -> ', mode, '\nq -> ', q, '\noptimalWindAngle -> ', optimalWindAngle,
+                //             '\nmaxDistanceFromWaypointLine -> ', maxDistanceFromWaypointLine, '\nwpPrev -> ', wpPrev,
+                //             '\nwpCurrent -> ', wpCurrent, '\nwpNext -> ', wpNext, '\nboat -> ', boat, '\nwind -> ', wind)
+                // console.log('******************\n')
             }
         },
 
