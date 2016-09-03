@@ -78,7 +78,6 @@ var self = {
      */
     init: function(contest) {
         self.contest = contest;
-
         self.waypoints = new WaypointManager(contest.waypoints);
         self.renderer = new (require('./Renderer'))();
 
