@@ -62,24 +62,26 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
                 renderer.drawTrail(myPosition, 'WHITE', true);
                 headingAlongLayLine = layLine.hasReachedIt();
 
-                // log('!q')
+                log('!q')
             } else if (boundaryTracker.isOutOfBounds(myPosition)) {
                 q = insideCourse();
                 renderer.drawTrail(myPosition, 'BLUE', true);
-                // log('isOutOfBounds')
+                log('isOutOfBounds')
             } else if (layLine.hasJustCrossedLayLine()) {
                 headingAlongLayLine = true;
                 this.tack();
                 renderer.drawTrail(myPosition, 'GREEN', true);
-                // log('hasJustCrossedLayLine')
+                log('hasJustCrossedLayLine')
             } else if (hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev, boat.attitude.heading)) { // FIXME: change to boat.velocity.heading
                 this.tack();
                 renderer.drawTrail(myPosition, 'RED', true);
-                // log('hasReachedMaxDistFromWaypointLine')
+                log('hasReachedMaxDistFromWaypointLine')
             }
 
             var optimalRelativeHeading = calcOptimalRelativeHeading(boat);
-            // console.log('optimalRelativeHeading: ', optimalRelativeHeading, boat.attitude.heading, boat.trueWind.heading)
+            // console.log('\n\ndistantToWaypointLine: ', myPosition.distanceToLine(wpCurrent, wpPrev).toFixed(1), headingAlongLayLine, q);
+            // console.log('optimalRelativeHeading: ', optimalRelativeHeading.toFixed(1), 'boat.attitude.heading: ', boat.attitude.heading.toFixed(1), 'boat.trueWind.heading: ', boat.trueWind.heading.toFixed(1))
+            console.log()
             return optimalRelativeHeading;
 
             function log (name) {
@@ -105,16 +107,27 @@ function TackKeeper(optimalWindAngle, tackParams, mode, boundaryTracker, rendere
 
     function hasReachedMaxDistFromWaypointLine(myPosition, sideOfLine, wpCurrent, wpPrev, boatHeading) {
 
-        if (headingAlongLayLine) return false;
+        if (headingAlongLayLine) {
+            // console.log('hasReachedMaxDistFromWaypointLine: false, headingAlongLayLine')
+            return false;
+        }
 
         // Don't tack if we are close the lay line, this will require an extra tack later
-        if (layLine.isNear(boatHeading, laylineReach)) return false;
+        if (layLine.isNear(boatHeading, laylineReach)) {
+            // console.log('hasReachedMaxDistFromWaypointLine: false, near layLine')
+            return false;
+        }
+
+        var onTargetSideOfLine = (q === sign * sideOfLine);
+        if (onTargetSideOfLine === false) {
+            return false;
+        }
 
         var distantToWaypointLine = myPosition.distanceToLine(wpCurrent, wpPrev);
-        var onTargetSideOfLine = (q === -sideOfLine);
-        var hasReachedMax = distantToWaypointLine >= maxDistanceFromWaypointLine;
+        var hasReachedMax = (distantToWaypointLine >= maxDistanceFromWaypointLine);
 
-        return onTargetSideOfLine && hasReachedMax;
+        // console.log('hasReachedMaxDistFromWaypointLine: onTargetSideOfLine=' + onTargetSideOfLine, 'hasReachedMax=' + hasReachedMax)
+        return hasReachedMax;
     }
 
     function calcOptimalRelativeHeading(boat) {

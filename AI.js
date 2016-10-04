@@ -46,15 +46,15 @@ var tuningParams = {
     // These two determine the best angle for the boat based on the given wind.
     sailingMode: {
         sideWindThresh: 60,     // degrees
-        aftWindThresh: 120,     // degrees
+        aftWindThresh: 190,     // degrees
         changeAngleThresh: 15   // degrees, When changing between fore/side/aft-winds, we need an extra thresh
     },
 
     // How far away from the line between the waypoints should we tack?
     tack: {
         maxDistThresh: {
-            'aft-wind': 4,
-            'fore-wind': 4,
+            'aft-wind': 10,
+            'fore-wind': 10,
         },
         laylineReachFactor: 2.5    // Don't tack if the distance of the layline is less than maxDistThresh.(aft/fore) * laylineReachFactor
     },
